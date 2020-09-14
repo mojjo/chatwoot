@@ -34,7 +34,7 @@ services:
       - mailhog
       - sidekiq
     ports:
-      - 3000:3000
+      - 3002:3000
     environment:
       - WEBPACKER_DEV_SERVER_HOST=webpack
       - NODE_ENV=development
@@ -80,6 +80,7 @@ services:
       - RAILS_ENV=development
     entrypoint: docker/entrypoints/webpack.sh
     command: bin/webpack-dev-server
+    env_file: .env
 
   postgres:
     image: postgres:12
@@ -91,7 +92,7 @@ services:
     environment:
       - POSTGRES_DB=chatwoot
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=
+      - POSTGRES_PASSWORD=postgres
 
   redis:
     image: redis:alpine
