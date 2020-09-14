@@ -32,8 +32,7 @@ class NotificationListener < BaseListener
     conversation = message.conversation
 
     # only want to notify agents about customer messages
-    return unless message.incoming?
-    return unless conversation.assignee
+    return unless message.incoming? # TODO: change that for customers ?
 
     if conversation.assignee then
       NotificationBuilder.new(

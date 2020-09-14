@@ -2,7 +2,7 @@ class NotificationBuilder
   pattr_initialize [:notification_type!, :user!, :account!, :primary_actor!]
 
   def perform
-    return unless user_subscribed_to_notification?
+    # return unless user_subscribed_to_notification?
 
     build_notification
   end
