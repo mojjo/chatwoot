@@ -16,8 +16,13 @@
     </td>
   </tr>
   <tr>
-    <td class="message-sender">
+    <td class="message-sender-contact">
       <%= @message.sender&.name %> on <%= @message.created_at.localtime.to_formatted_s(:short) %>
+    </td>
+  </tr>
+  <tr>
+    <td class="message-sender-contact">
+      @Email: <%= @message.sender&.email %>
     </td>
   </tr>
 </table>

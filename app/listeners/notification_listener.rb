@@ -35,11 +35,22 @@ class NotificationListener < BaseListener
     return unless message.incoming?
     return unless conversation.assignee
 
-    NotificationBuilder.new(
-      notification_type: 'assigned_conversation_new_message',
-      user: conversation.assignee,
-      account: account,
-      primary_actor: conversation
-    ).perform
+    if conversation.assignee then
+      NotificationBuilder.new(
+        notification_type: 'assigned_conversation_new_message',
+        user: conversation.assignee,
+        account: account,
+        primary_actor: conversation
+      ).perform
+    else
+      conversation.inbox.members.each do |agent|
+        NotificationBuilder.new(
+          notification_type: 'unassigned_conversation_new_message',
+          user: agent,
+          account: account,
+          primary_actor: conversation
+        ).perform
+      end
+    end
   end
 end
