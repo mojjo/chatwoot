@@ -1,6 +1,6 @@
 class ConversationReplyMailer < ApplicationMailer
   default from: ENV.fetch('MAILER_SENDER_EMAIL', 'accounts@chatwoot.com')
-  layout :choose_layout
+  layout 'mailer/reply'
 
   def reply_with_summary(conversation, message_queued_time)
     return unless smtp_config_set_or_development?
@@ -8,10 +8,7 @@ class ConversationReplyMailer < ApplicationMailer
     init_conversation_attributes(conversation)
     return if conversation_already_viewed?
 
-    recap_messages = @conversation.messages.chat.where('created_at < ?', message_queued_time).last(10)
-    new_messages = @conversation.messages.chat.where('created_at >= ?', message_queued_time)
-    @messages = recap_messages + new_messages
-    @messages = @messages.select(&:reportable?)
+    @messages = @conversation.messages.select(&:reportable?)
 
     mail({
            to: @contact&.email,

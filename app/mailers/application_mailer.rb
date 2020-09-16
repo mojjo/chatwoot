@@ -3,7 +3,7 @@ class ApplicationMailer < ActionMailer::Base
 
   default from: ENV.fetch('MAILER_SENDER_EMAIL', 'accounts@chatwoot.com')
   before_action { ensure_current_account(params.try(:[], :account)) }
-  layout 'mailer/base'
+
   # Fetch template from Database if available
   # Order: Account Specific > Installation Specific > Fallback to file
   prepend_view_path ::EmailTemplate.resolver

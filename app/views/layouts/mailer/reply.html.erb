@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
+
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+
+    <style type="text/css">
+      body {
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: none;
+        width: 100% !important;
+        height: 100%;
+        line-height: 1.6em;
+      }
+
+      blockquote {
+        border-left-color: #ccc;
+        border-left-style: solid;
+        border-left-width: 1px;
+        font-style: normal;
+        margin: 0 0 0 .8ex;
+        padding: 1px 0 10px 1ex;
+      }
+
+      .reply-info {
+        color: #8c8c8c;
+      }
+    </style>
+  </head>
+
+  <body itemscope itemtype="http://schema.org/EmailMessage">
+    <div class="container">
+      <div class="content">
+        <meta itemprop="name" content="Confirm Email" />
+        <div width="100%" cellpadding="0" cellspacing="0">
+            <%= yield %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

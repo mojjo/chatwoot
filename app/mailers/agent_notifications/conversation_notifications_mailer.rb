@@ -1,4 +1,6 @@
 class AgentNotifications::ConversationNotificationsMailer < ApplicationMailer
+  layout 'mailer/agent'
+
   def conversation_creation(conversation, agent)
     return unless smtp_config_set_or_development?
 
