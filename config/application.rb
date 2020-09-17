@@ -31,7 +31,10 @@ module Chatwoot
     config.x = config_for(:app).with_indifferent_access
 
     if ENV['GOOGLE_USER_ID'].present?
-      config.google_user_id = ENV['GOOGLE_USER_ID']
+      config.google = {
+        user_id: ENV['GOOGLE_USER_ID'],
+        topic: ENV['GOOGLE_GMAIL_TOPIC']
+      }
     end
   end
 
