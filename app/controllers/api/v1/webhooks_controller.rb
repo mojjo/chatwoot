@@ -25,4 +25,12 @@ class Api::V1::WebhooksController < ApplicationController
   def twitter_consumer
     @twitter_consumer ||= ::Webhooks::Twitter.new(params)
   end
+
+  def gmail_events
+    gmail_consumer.consume
+    head :ok
+  rescue StandardError => e
+    Raven.capture_exception(e)
+    head :ok
+  end
 end

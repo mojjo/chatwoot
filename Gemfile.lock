@@ -578,7 +578,9 @@ DEPENDENCIES
   fcm
   flag_shih_tzu
   foreman
+  google-api-client (~> 0.43.0)
   google-cloud-storage
+  googleauth (~> 0.13.1)
   groupdate
   haikunator
   hashie

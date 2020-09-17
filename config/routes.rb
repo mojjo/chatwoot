@@ -163,6 +163,7 @@ Rails.application.routes.draw do
   mount Facebook::Messenger::Server, at: 'bot'
   get 'webhooks/twitter', to: 'api/v1/webhooks#twitter_crc'
   post 'webhooks/twitter', to: 'api/v1/webhooks#twitter_events'
+  post 'webhooks/gmail', to: 'api/v1/webhooks#gmail_events'
 
   # ----------------------------------------------------------------------
   # Routes for testing

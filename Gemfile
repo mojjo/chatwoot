@@ -133,3 +133,7 @@ group :development, :test do
   gem 'spring-watcher-listen'
   gem 'webmock'
 end
+
+gem "googleauth", "~> 0.13.1"
+
+gem "google-api-client", "~> 0.43.0"

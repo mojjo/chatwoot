@@ -29,6 +29,10 @@ module Chatwoot
 
     # Custom chatwoot configurations
     config.x = config_for(:app).with_indifferent_access
+
+    if ENV['GOOGLE_USER_ID'].present?
+      config.google_user_id = ENV['GOOGLE_USER_ID']
+    end
   end
 
   def self.config

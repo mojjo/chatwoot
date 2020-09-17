@@ -180,7 +180,9 @@ class Message < ApplicationRecord
     # last few messages coupled together is sent every 2 minutes rather than one email for each message
     if Redis::Alfred.get(conversation_mail_key).nil?
       Redis::Alfred.setex(conversation_mail_key, Time.zone.now)
-      ConversationReplyEmailWorker.perform_in(2.minutes, conversation.id, Time.zone.now)
+      # ConversationReplyEmailWorker.perform_in(2.minutes, conversation.id, Time.zone.now)
+      # DEBUG
+      ConversationReplyEmailWorker.perform_in(2.seconds, conversation.id, Time.zone.now)
     end
   end
 
