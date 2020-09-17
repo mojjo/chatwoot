@@ -42,7 +42,7 @@ namespace :gmail do
       result = gmail.get_user_profile("me")
       puts result.to_yaml
 
-    rescue ::Google::Apis::ClientError => e
+    rescue StandardError => e
       puts e.to_yaml
       raise
     end
@@ -58,7 +58,16 @@ namespace :gmail do
       result = gmail.watch_user("me", watch_request)
       puts result.to_yaml
 
-    rescue ::Google::Apis::ClientError => e
+    rescue StandardError => e
+      puts e.to_yaml
+      raise
+    end
+  end
+
+  task :refresh_auth_token => :environment do
+    begin
+      gmail = get_gmail_service
+    rescue StandardError => e
       puts e.to_yaml
       raise
     end
