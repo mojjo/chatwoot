@@ -14,6 +14,16 @@ class Api::V1::WebhooksController < ApplicationController
     head :ok
   end
 
+  def gmail_events
+    message = Base64.decode64(params[:message][:data])
+    history_id = JSON.parse(message)["historyId"]
+    ::GmailNewEmailJob.perform_later(history_id)
+    head :ok
+  rescue StandardError => e
+    Raven.capture_exception(e)
+    head :ok
+  end
+
   private
 
   def twitter_client
@@ -24,13 +34,5 @@ class Api::V1::WebhooksController < ApplicationController
 
   def twitter_consumer
     @twitter_consumer ||= ::Webhooks::Twitter.new(params)
-  end
-
-  def gmail_events
-    gmail_consumer.consume
-    head :ok
-  rescue StandardError => e
-    Raven.capture_exception(e)
-    head :ok
   end
 end

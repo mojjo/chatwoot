@@ -12,3 +12,6 @@ $alfred = Redis::Namespace.new('alfred', redis: redis, warning: true)
 # https://github.com/mperham/sidekiq/issues/4591
 # TODO once sidekiq remove we can remove this
 Redis.exists_returns_integer = false
+
+# Mutex used to ensure several jobs are not running at the same time
+$redisMutex = Redis::Namespace.new("redis_mutex", redis: redis)

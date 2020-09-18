@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_07_094912) do
+ActiveRecord::Schema.define(version: 2020_09_17_123258) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
@@ -256,6 +256,11 @@ ActiveRecord::Schema.define(version: 2020_09_07_094912) do
     t.index ["inbox_id"], name: "index_events_on_inbox_id"
     t.index ["name"], name: "index_events_on_name"
     t.index ["user_id"], name: "index_events_on_user_id"
+  end
+
+  create_table "gmail_auth", id: :serial, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "value"
   end
 
   create_table "inbox_members", id: :serial, force: :cascade do |t|
