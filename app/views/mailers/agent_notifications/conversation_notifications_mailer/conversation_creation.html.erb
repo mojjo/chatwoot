@@ -6,7 +6,7 @@
   <tr>
     <td class="message-content">
       <% if @message.content %>
-        <%= @message.content %>
+        <%= @message.content.gsub(/\n/, '<br />').html_safe %>
       <% end %>
       <% if @message.attachments %>
         <% @message.attachments.each do |attachment| %>

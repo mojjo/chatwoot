@@ -9,6 +9,10 @@ class AgentNotifications::ConversationNotificationsMailer < ApplicationMailer
     @action_url = app_account_conversation_url(account_id: @conversation.account_id, id: @conversation.display_id)
     @message = conversation.messages.first
 
+    if @message.nil?
+      return
+    end
+
     mail({
        to: @agent.email,
        from: from_email,
