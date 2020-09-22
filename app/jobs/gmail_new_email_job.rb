@@ -13,9 +13,13 @@ class GmailNewEmailJob < ApplicationJob
       begin
         puts "GmailNewEmailJob: Mutex acquired"
 
+        # Get last history id
+        last_history = GmailHistory.last
+
         # Get histories after the current one
         gmail = get_gmail_service
-        histories = gmail.list_user_histories("me", history_types: ["messageAdded"], label_id: "INBOX", start_history_id: history_id)
+        histories = gmail.list_user_histories("me", history_types: ["messageAdded"], label_id: "INBOX", 
+          start_history_id: last_history.nil? ? history_id : last_history.history_id)
 
         puts histories.to_yaml
 
@@ -24,15 +28,24 @@ class GmailNewEmailJob < ApplicationJob
             # Get messages corresponding to this history
             message_id = history.messages[0].id
 
+            puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+            puts "message_id: #{message_id}"
+
+            existing_history = GmailHistory.find_by_history_id(history.id)
+            if not existing_history.nil?
+              puts "History already processed"
+              next
+            end
+
             begin
-              puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-              puts "message_id: #{message_id}"
               message = gmail.get_user_message("me", message_id, format: "full")
               process_message(gmail, message)
             rescue StandardError => e
               puts "ERROR on message #{message_id}: #{e}"
               puts e.backtrace
             end
+
+            GmailHistory.create(history_id: history.id)
           end
         else
           puts "GmailNewEmailJob: No message to process"
@@ -121,15 +134,7 @@ class GmailNewEmailJob < ApplicationJob
       message_body = convert_to_text(message.payload.body.data)
     end
 
-    # TODO: check if it's a reply to an existing conversation
-
-    # Remove replies
-    message_body = EmailReplyTrimmer.trim(message_body)
-
-    # Add subject
-    message_body = "Subject: " + subject + "\n\n" + message_body
-
-    # Create a contact and a conversation
+    # Create a contact if needed
     inbox = Inbox.find_by_name("mojjo")
 
     contact = Contact.find_by_email(sender)
@@ -142,12 +147,30 @@ class GmailNewEmailJob < ApplicationJob
       contact_inbox = ContactInbox.create!(inbox_id: inbox.id, contact_id: contact.id, source_id: SecureRandom.uuid)
     end
 
-    conversation = Conversation.create!(
-      account_id: inbox.account_id,
-      inbox_id: inbox.id,
-      contact_id: contact.id,
-      contact_inbox_id: contact_inbox.id
-    )
+    conversation = nil
+
+    # Check if it's a reply to an existing conversation
+    existing_conversation_id = subject.match(/(?<=\#)(.*)(?=\])/)
+    if not existing_conversation_id.nil?
+      # Find existing conversation
+      conversation = Conversation.find(existing_conversation_id[1])
+    end
+      
+    if conversation.nil?
+      # Create a conversation
+      conversation = Conversation.create!(
+        account_id: inbox.account_id,
+        inbox_id: inbox.id,
+        contact_id: contact.id,
+        contact_inbox_id: contact_inbox.id
+      )
+
+      # Add subject
+      message_body = "Subject: " + subject + "\n\n" + message_body
+    else
+      # Remove replies
+      message_body = EmailReplyTrimmer.trim(message_body)
+    end
 
     # Create the message
     Message.create!(content: message_body, account_id: inbox.account_id, inbox_id: inbox.id, conversation: conversation, sender: contact, message_type: :incoming)

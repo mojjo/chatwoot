@@ -55,5 +55,5 @@ en:
       ways_to_reach_you_message_body: "Give the team a way to reach you."
       email_input_box_message_body: "Get notified by email"
     reply:
-      email_subject: "New messages on this conversation"
+      email_subject: "MOJJO - New messages on your conversation"
       transcript_subject: "Conversation Transcript"

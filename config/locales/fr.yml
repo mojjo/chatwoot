@@ -40,5 +40,5 @@ fr:
       ways_to_reach_you_message_body: "Donnez à l'équipe un moyen de vous recontacter."
       email_input_box_message_body: "Recevez des notifications par courriel"
     reply:
-      email_subject: "Nouveaux messages dans cette conversation"
+      email_subject: "MOJJO - Nouveaux messages dans votre conversation"
       transcript_subject: "Transcription de conversation"

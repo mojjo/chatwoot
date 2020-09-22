@@ -258,9 +258,9 @@ ActiveRecord::Schema.define(version: 2020_09_17_123258) do
     t.index ["user_id"], name: "index_events_on_user_id"
   end
 
-  create_table "gmail_auth", id: :serial, force: :cascade do |t|
-    t.string "name", null: false
-    t.string "value"
+  create_table "gmail_histories", id: :serial, force: :cascade do |t|
+    t.bigint "history_id", null: false
+    t.datetime "created_at", precision: 6, null: false
   end
 
   create_table "inbox_members", id: :serial, force: :cascade do |t|
