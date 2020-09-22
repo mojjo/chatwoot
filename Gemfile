@@ -139,3 +139,5 @@ gem "googleauth", "~> 0.13.1"
 gem "google-api-client", "~> 0.43.0"
 
 gem "whenever", "~> 1.0"
+
+gem "email_reply_trimmer", "~> 0.1.13"

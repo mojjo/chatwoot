@@ -180,6 +180,7 @@ GEM
     dotenv-rails (2.7.6)
       dotenv (= 2.7.6)
       railties (>= 3.2)
+    email_reply_trimmer (0.1.13)
     equalizer (0.0.11)
     erubi (1.9.0)
     execjs (2.7.0)
@@ -575,6 +576,7 @@ DEPENDENCIES
   devise
   devise_token_auth
   dotenv-rails
+  email_reply_trimmer (~> 0.1.13)
   facebook-messenger (= 1.5.0)
   factory_bot_rails
   faker

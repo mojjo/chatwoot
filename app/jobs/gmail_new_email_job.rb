@@ -17,6 +17,8 @@ class GmailNewEmailJob < ApplicationJob
         gmail = get_gmail_service
         histories = gmail.list_user_histories("me", history_types: ["messageAdded"], label_id: "INBOX", start_history_id: history_id)
 
+        puts histories.to_yaml
+
         if histories.history.present?
           histories.history.each do |history|
             # Get messages corresponding to this history
@@ -62,7 +64,6 @@ class GmailNewEmailJob < ApplicationJob
   end
 
   def process_message(gmail, message)
-    # puts message.to_yaml
 
     subject = ""
     sender = ""
@@ -115,15 +116,18 @@ class GmailNewEmailJob < ApplicationJob
     # puts "recipient: #{recipient}"
     # puts message.to_yaml
 
-    message_content = get_plain_text_from_message_parts(message.payload.parts, true).force_encoding("UTF-8")
-    if message_content.empty?
-      message_content = convert_to_text(message.payload.body.data)
+    message_body = get_plain_text_from_message_parts(message.payload.parts, true).force_encoding("UTF-8")
+    if message_body.empty?
+      message_body = convert_to_text(message.payload.body.data)
     end
 
-    message_content = filter_message_content(subject, message_content)    
-    message_body = "Subject: " + subject + "\n\n" + message_content
+    # TODO: check if it's a reply to an existing conversation
 
-    # puts "Body: #{message_body}"
+    # Remove replies
+    message_body = EmailReplyTrimmer.trim(message_body)
+
+    # Add subject
+    message_body = "Subject: " + subject + "\n\n" + message_body
 
     # Create a contact and a conversation
     inbox = Inbox.find_by_name("mojjo")
@@ -275,8 +279,6 @@ class GmailNewEmailJob < ApplicationJob
     txt.gsub!(/\(([ \n])(http[^)]+)([\n ])\)/) do |s|
       ($1 == "\n" ? $1 : '' ) + '( ' + $2 + ' )' + ($3 == "\n" ? $1 : '' )
     end
-
-    puts txt
 
     txt.strip
     return txt

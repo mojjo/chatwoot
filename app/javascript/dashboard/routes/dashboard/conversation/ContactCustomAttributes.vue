@@ -13,7 +13,8 @@
         {{ attribute }}
       </div>
       <div>
-        {{ customAttributes[attribute] }}
+        <a v-if="customAttributes[attribute].startsWith('http')" v-bind:href="customAttributes[attribute]" target="_blank">{{ customAttributes[attribute] }}</a>
+        <div v-else>{{ customAttributes[attribute] }}</div>
       </div>
     </div>
   </div>
