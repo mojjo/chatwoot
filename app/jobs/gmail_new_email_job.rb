@@ -79,7 +79,7 @@ class GmailNewEmailJob < ApplicationJob
 
   def process_message(gmail, message)
 
-    puts message.to_yaml
+    # puts message.to_yaml
 
     subject = ""
     sender = ""
@@ -213,7 +213,7 @@ class GmailNewEmailJob < ApplicationJob
 
           file_type = message_part.mime_type.split('/').first
           file_extension = message_part.mime_type.split('/').last
-          tmp_filename = [Time.now.to_i.to_s, file_extension].join('.')
+          tmp_filename = [DateTime.now.strftime('%Q'), file_extension].join('.')
 
           file ||= Tempfile.new(tmp_filename, Rails.root.join('tmp'), binmode: true).tap do |f|
             f.write(attachment.data)

@@ -93,7 +93,7 @@ class Message < ApplicationRecord
       conversation_id: conversation.display_id
     )
     data.merge!(echo_id: echo_id) if echo_id.present?
-    data.merge!(attachments: attachments.map(&:push_event_data)) if attachments.present?
+    data.merge!(attachments: self.attachments.includes([:file_attachment]).map(&:push_event_data)) if attachments.present?
     merge_sender_attributes(data)
   end
 
@@ -182,7 +182,7 @@ class Message < ApplicationRecord
       Redis::Alfred.setex(conversation_mail_key, Time.zone.now)
       # ConversationReplyEmailWorker.perform_in(2.minutes, conversation.id, Time.zone.now)
       # DEBUG
-      ConversationReplyEmailWorker.perform_in(2.seconds, conversation.id, Time.zone.now)
+      ConversationReplyEmailWorker.perform_in(2.minutes, conversation.id, Time.zone.now)
     end
   end
 

@@ -5,12 +5,12 @@
 <table style="width: 100%;">
   <tr>
     <td class="message-content">
-      <% if @message.content %>
-        <%= @message.content.gsub(/\n/, '<br />').html_safe %>
+      <% if message.content %>
+        <div><%= message.content.gsub(/\n/, '<br />').html_safe %></div>
       <% end %>
-      <% if @message.attachments %>
-        <% @message.attachments.each do |attachment| %>
-          Attachment [<a href="<%= attachment.file_url %>" _target="blank">Click here to view</a>]
+      <% if message.attachments %>
+        <% message.attachments.each do |attachment| %>
+          <div>Attachment <%= File.basename(attachment.file_url) %> [<a href="<%= attachment.file_url %>" _target="blank">Click here to view</a>]</div>
         <% end %>
       <% end %>
     </td>
