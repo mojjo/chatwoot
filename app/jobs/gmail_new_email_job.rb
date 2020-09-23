@@ -6,12 +6,13 @@ class GmailNewEmailJob < ApplicationJob
   queue_as :integrations
 
   def perform(history_id)
-    puts "GmailNewEmailJob: history_id: #{history_id}"
+    logger.info "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    logger.info "GmailNewEmailJob: history_id: #{history_id}"
     mutexName = "gmail_new_email_mutex"
     $redisMutex.del(mutexName)
     if $redisMutex.setnx(mutexName, 1)
       begin
-        puts "GmailNewEmailJob: Mutex acquired"
+        logger.info "GmailNewEmailJob: Mutex acquired"
 
         # Get last history id
         last_history = GmailHistory.last
@@ -21,19 +22,18 @@ class GmailNewEmailJob < ApplicationJob
         histories = gmail.list_user_histories("me", history_types: ["messageAdded"], label_id: "INBOX", 
           start_history_id: last_history.nil? ? history_id : last_history.history_id)
 
-        puts histories.to_yaml
-
         if histories.history.present?
           histories.history.each do |history|
             # Get messages corresponding to this history
             message_id = history.messages[0].id
 
-            puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-            puts "message_id: #{message_id}"
+            logger.info "-------------------------------------------------"
+            logger.info "message_id: #{message_id}"
+            logger.info history.to_yaml
 
             existing_history = GmailHistory.find_by_history_id(history.id)
             if not existing_history.nil?
-              puts "History already processed"
+              logger.info "History already processed"
               next
             end
 
@@ -41,26 +41,27 @@ class GmailNewEmailJob < ApplicationJob
               message = gmail.get_user_message("me", message_id, format: "full")
               process_message(gmail, message)
             rescue StandardError => e
-              puts "ERROR on message #{message_id}: #{e}"
-              puts e.backtrace
+              logger.info "ERROR on message #{message_id}: #{e}"
+              logger.info e.backtrace
             end
 
-            GmailHistory.create(history_id: history.id)
+            # GmailHistory.create(history_id: history.id)
           end
         else
-          puts "GmailNewEmailJob: No message to process"
+          logger.info "GmailNewEmailJob: No message to process"
         end
 
         $redisMutex.del(mutexName)
       rescue StandardError => e
         $redisMutex.del(mutexName)
-        puts "ERROR: #{e}"
-        puts e.backtrace
+        logger.info "ERROR: #{e}"
+        logger.info e.backtrace
       end
     else
-      puts "GmailNewEmailJob: Cannot acquire mutex, rescheduling"
+      logger.info "GmailNewEmailJob: Cannot acquire mutex, rescheduling"
       GmailNewEmailJob.set(wait: 5.second).perform_later(history_id)
     end
+    logger.info "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
   end
 
   def get_gmail_service
@@ -77,6 +78,8 @@ class GmailNewEmailJob < ApplicationJob
   end
 
   def process_message(gmail, message)
+
+    puts message.to_yaml
 
     subject = ""
     sender = ""
@@ -110,7 +113,7 @@ class GmailNewEmailJob < ApplicationJob
 
     if sender == "mailer-daemon@googlemail.com"
       # TODO: Update website to undeliverable for the recipient
-      puts "Failed recipients: #{failedRecipients}"
+      logger.info "Failed recipients: #{failedRecipients}"
 
       # website_mojjo.get('set_user_undeliverable', "email=" + failedRecipients, function() {
       #   messages.splice(0, 1);
@@ -120,14 +123,14 @@ class GmailNewEmailJob < ApplicationJob
     end
 
     if not recipient.include?("support@mojjo.io") and not recipient.include?("support@mojjo.fr")
-      puts "Message is not coming to the appropriate mailbox"
+      logger.info "Message is not coming to the appropriate mailbox"
       return
     end
 
-    # puts "subject: #{subject}"
-    # puts "sender: #{sender}"
-    # puts "recipient: #{recipient}"
-    # puts message.to_yaml
+    # logger.info "subject: #{subject}"
+    # logger.info "sender: #{sender}"
+    # logger.info "recipient: #{recipient}"
+    # logger.info message.to_yaml
 
     message_body = get_plain_text_from_message_parts(message.payload.parts, true).force_encoding("UTF-8")
     if message_body.empty?
@@ -173,8 +176,10 @@ class GmailNewEmailJob < ApplicationJob
     end
 
     # Create the message
-    Message.create!(content: message_body, account_id: inbox.account_id, inbox_id: inbox.id, conversation: conversation, sender: contact, message_type: :incoming)
+    new_message = Message.create!(content: message_body, account_id: inbox.account_id, inbox_id: inbox.id, conversation: conversation, sender: contact, message_type: :incoming)
 
+    # Handle attachments
+    process_attachments_from_message_parts(gmail, message.id, message.payload.parts, new_message)
   end
 
   def get_plain_text_from_message_parts(message_parts, is_first)
@@ -199,10 +204,42 @@ class GmailNewEmailJob < ApplicationJob
     return res
   end
 
-  # The objective here is to remove content after the user reply
-  def filter_message_content(subject, message_content)
-    # Only do that if the message is a reply to a chatwoot ticket
-    return message_content
+  def process_attachments_from_message_parts(gmail, message_id, message_parts, new_message)
+    if message_parts.present? and message_parts.length > 0
+      message_parts.each do |message_part|
+        if not message_part.filename.nil? and not message_part.filename.empty?
+
+          attachment = gmail.get_user_message_attachment("me", message_id, message_part.body.attachment_id)
+
+          file_type = message_part.mime_type.split('/').first
+          file_extension = message_part.mime_type.split('/').last
+          tmp_filename = [Time.now.to_i.to_s, file_extension].join('.')
+
+          file ||= Tempfile.new(tmp_filename, Rails.root.join('tmp'), binmode: true).tap do |f|
+            f.write(attachment.data)
+            f.close
+          end
+
+          file.open
+
+          attachment_obj = new_message.attachments.new(
+            account_id: new_message.account_id,
+            file_type: file_type
+          )
+          attachment_obj.save!
+          attachment_obj.file.attach(
+            io: file,
+            filename: message_part.filename,
+            content_type: Encoding.find("ASCII-8BIT")
+          )
+
+          file.close
+        end
+        if message_part.parts.present? and message_part.parts.length > 0
+          process_attachments_from_message_parts(gmail, message_id, message_part.parts, new_message)
+        end
+      end
+    end
   end
 
   # Taken from https://github.com/alexdunae/premailer/blob/master/lib/premailer/html_to_plain_text.rb

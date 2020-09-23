@@ -75,7 +75,7 @@ class ConversationReplyMailer < ApplicationMailer
   end
 
   def assignee_name
-    @assignee_name ||= @agent&.available_name || 'Notifications'
+    @assignee_name ||= @agent&.available_name || 'MOJJO'
   end
 
   def mail_subject
